@@ -10,7 +10,7 @@ Server application for the feedback version of the acquisition system developed 
 	- [git](#git)
   - [Download](#download)
   - [Compile](#compile)
-  - [Run](#run)
+- [Run](#run)
 
 ## Installation
 
@@ -50,7 +50,7 @@ cmake ..
 make
 ```
 
-### Run
+## Run
 
 Run the server on the Raspberry Pi with default port 8888:
 
