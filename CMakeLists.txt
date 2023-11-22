@@ -4,7 +4,7 @@ project(ocmfet-server-feedback)
 # Set C++ standard to C++20 (jthread is not available in C++17)
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(server src/main.cpp src/hw_peripherals.cpp src/acqer.cpp src/server.cpp)
+add_executable(server src/main.cpp src/hw_peripherals.cpp src/acquirer.cpp src/server.cpp)
 
 target_include_directories(server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
