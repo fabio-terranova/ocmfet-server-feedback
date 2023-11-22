@@ -1,7 +1,7 @@
 #pragma once
 
 #include "hw_peripherals.hpp"
-#include "acqer.hpp"
+#include "acquirer.hpp"
 
 #include <string>
 #include <sys/socket.h>
