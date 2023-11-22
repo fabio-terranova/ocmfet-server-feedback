@@ -28,5 +28,5 @@ $ make
 Run the server on the Raspberry Pi with default port 8888:
 
 ```bash
-$ ./run.sh
+$ sudo ./build/server 8888
 ```
