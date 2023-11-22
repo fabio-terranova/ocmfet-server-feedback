@@ -367,12 +367,12 @@ int Set_Vsetpoint(double val, int ch)
 
 	if (sendCommandTodsPic(command) == 0)
 	{
-		D printf("Vsetpoint%d set to %f V\n", ch, val);
+		D printf("Ids_setpoint%d set to %f \u03BCA\n", ch, val);
 		return 0;
 	}
 	else
 	{
-		D printf("Error setting Vsetpoint%d\n", ch);
+		D printf("Error setting Ids_setpoint%d\n", ch);
 		return -1;
 	}
 }

@@ -1,16 +1,18 @@
 # OCMFET server (feedback version)
 
-Server application for the feedback version of the acquisition system developed by Elbatech. The server is intended to run on a Raspberry Pi 4 with Raspbian OS.
+Server application for the **feedback** version of the acquisition system developed by Elbatech. The server is intended to run on a Raspberry Pi 4 with Raspbian OS.
 
 ## Index
 
-- [Installation](#installation)
-  - [Prerequisites](#prerequisites)
-	- [CMake](#cmake)
-	- [git](#git)
-  - [Download](#download)
-  - [Compile](#compile)
-- [Run](#run)
+- [OCMFET server (feedback version)](#ocmfet-server-feedback-version)
+  - [Index](#index)
+  - [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+      - [CMake](#cmake)
+      - [git](#git)
+    - [Download](#download)
+    - [Compile](#compile)
+  - [Run](#run)
 
 ## Installation
 
