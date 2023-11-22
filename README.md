@@ -14,19 +14,19 @@ Server application for the feedback version of the acquisition system developed 
 
 Compile the server application on the Raspberry Pi using CMake:
 
-```bash
-$ git clone https://github.com/fabio-terranova/ocmfet-server-feedback
-$ cd ocmfet-server-feedback
-$ mkdir build
-$ cd build
-$ cmake ..
-$ make
+```sh
+git clone https://github.com/fabio-terranova/ocmfet-server-feedback
+cd ocmfet-server-feedback
+mkdir build
+cd build
+cmake ..
+make
 ```
 
 ### Run
 
 Run the server on the Raspberry Pi with default port 8888:
 
-```bash
-$ sudo ./build/server 8888
+```sh
+sudo ./build/server 8888
 ```
