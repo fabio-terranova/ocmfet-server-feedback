@@ -19,8 +19,7 @@ Server application for the **feedback** version of the acquisition system develo
 Git is required to download the repository from GitHub. CMake is required to compile the server application.
 
 ```sh
-sudo apt-get install git
-sudo apt-get install cmake
+sudo apt-get install git cmake
 ```
 
 ### Download
