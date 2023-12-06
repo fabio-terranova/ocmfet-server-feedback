@@ -48,3 +48,9 @@ Run the server on the Raspberry Pi with port 8888:
 ```sh
 sudo ./build/server 8888
 ```
+
+Equivalently with default port 8888:
+
+```sh
+sudo ./run.sh
+```
