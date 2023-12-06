@@ -10,7 +10,7 @@
 #include <cstring>
 
 #define IDS_LATEX(x, y) "$I_{ds_{" + (x) + "}}=-" + (y) + "\\text{ }\\mu \\text{A}$"
-#define VGS_LATEX(x, y) "$V_{g_{" + (x) + "}}=-" + (y) + "\\text{ V}$"
+#define VG_LATEX(x, y) "$V_{g_{" + (x) + "}}=-" + (y) + "\\text{ V}$"
 
 using namespace std;
 
@@ -276,7 +276,7 @@ int Acquirer::SetVG(double value, int channel)
 	// set value precision to 2 decimal digits (V)
 	stringstream ss;
 	ss << fixed << setprecision(2) << value;
-	TagRecording(VGS_LATEX(to_string(channel), ss.str()));
+	TagRecording(VG_LATEX(to_string(channel), ss.str()));
 
 	return Set_VG(value, channel);
 }
