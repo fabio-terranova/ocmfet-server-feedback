@@ -38,7 +38,7 @@ Compile the server application using CMake:
 cd ocmfet-server-feedback
 mkdir build
 cmake -S . -B build
-make -C build
+cmake --build build/
 ```
 
 ## Run
