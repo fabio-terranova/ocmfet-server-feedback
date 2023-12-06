@@ -9,6 +9,9 @@
 #include <iomanip>
 #include <cstring>
 
+#define IDS_LATEX(x, y) "$I_{ds_{" + (x) + "}}=-" + (y) + "\\text{ }\\mu \\text{A}$"
+#define VGS_LATEX(x, y) "$V_{g_{" + (x) + "}}=-" + (y) + "\\text{ V}$"
+
 using namespace std;
 
 Acquirer::Acquirer(string data_folder, float T2) : acquiring_(false), recording_(false), paused_(false),
@@ -79,6 +82,7 @@ void Acquirer::StartRecording()
 {
 	recording_ = true;
 	paused_ = false;
+
 	if (!acquiring_)
 		Start();
 }
@@ -86,8 +90,7 @@ void Acquirer::StartRecording()
 void Acquirer::StartRecording(string filename)
 {
 	filename_ = filename;
-	tags_ = "sample,tag,T2\n";
-	tags_ += "0,start," + to_string(T2_) + "\n";
+	tags_ = "time,tag\n";
 
 	StartRecording();
 }
@@ -144,11 +147,13 @@ vector<string> Acquirer::SaveRecording()
 	}
 
 	// Write the tags
-	TagRecording("stop");
 	fwrite(tags_.c_str(), 1, tags_.length(), fp);
 
 	// Close the file
 	fclose(fp);
+
+	// Reset the memory offset
+	memoffset_ = 0;
 
 	return vector<string>{filename, tags_filename};
 }
@@ -167,7 +172,7 @@ vector<string> Acquirer::Stop()
 
 void Acquirer::TagRecording(string tag)
 {
-	tags_ += to_string((long)((double)memoffset_ / 4)) + "," + tag + "," + to_string(T2_) + "\n";
+	tags_ += to_string((float)(memoffset_) / 4 * T2_ / 1e6) + "," + tag + "\n";
 }
 
 void Acquirer::AcquireData()
@@ -263,18 +268,25 @@ void Acquirer::ProcessData(Server *server)
 int Acquirer::SetT2(float value)
 {
 	T2_ = value;
-	// tags_ += to_string(iter_) + ",T2," + to_string(T2_) + "\n";
 	return Set_T2(T2_);
 }
 
 int Acquirer::SetVG(double value, int channel)
 {
-	tags_ += to_string(iter_) + ",VG" + to_string(channel) + "," + to_string(value) + "\n";
+	// set value precision to 2 decimal digits (V)
+	stringstream ss;
+	ss << fixed << setprecision(2) << value;
+	TagRecording(VGS_LATEX(to_string(channel), ss.str()));
+
 	return Set_VG(value, channel);
 }
 
 int Acquirer::SetVsetpoint(double value, int channel)
 {
-	tags_ += to_string(iter_) + ",IDS" + to_string(channel) + "," + to_string(value) + "\n";
+	// set value precision to 2 decimal digits (uA)
+	stringstream ss;
+	ss << fixed << setprecision(2) << value;
+	TagRecording(IDS_LATEX(to_string(channel), ss.str()));
+
 	return Set_Vsetpoint(value, channel);
 }

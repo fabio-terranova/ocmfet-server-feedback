@@ -52,7 +52,6 @@ private:
 
 	jthread acqThread_;
 	jthread procThread_;
-	
 	float T2_;
 	long int iter_;
 	unsigned char use_buffer_;
