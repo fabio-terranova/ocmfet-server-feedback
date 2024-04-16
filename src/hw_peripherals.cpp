@@ -20,15 +20,7 @@ int init_system()
 	SetupSPI();
 	SetupIO();
 	SetupOpenConfigUSART0();
-	runFirmware(0x08);
-	Set_T2lock(1);
-	usleep(300000);
-	Set_AcqEnabled(1);
-	usleep(300000);
-	// InitADC1();
-	// usleep(300000);
-	// InitADC2();
-	// usleep(300000);
+	ResetMCU();
 
 	return 0;
 }
@@ -50,8 +42,8 @@ void SetupSPI()
 {
 	bcm2835_spi_begin();
 	bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
-	bcm2835_spi_setDataMode(BCM2835_SPI_MODE1);
-	bcm2835_spi_setClockDivider(MY_SPI_SCLK_DIVIDER);
+	bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
+	bcm2835_spi_set_speed_hz(12500000); // on RPi4 this set fclock to 25 MHz
 	bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
 	bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
 
@@ -67,26 +59,10 @@ void SetupIO()
 	// Set ACK0 to be an input with a pullup
 	bcm2835_gpio_fsel(ACK0, BCM2835_GPIO_FSEL_INPT);
 	bcm2835_gpio_set_pud(ACK0, BCM2835_GPIO_PUD_UP);
-	// Set ACK1 to be an input with a pullup
-	bcm2835_gpio_fsel(ACK1, BCM2835_GPIO_FSEL_INPT);
-	bcm2835_gpio_set_pud(ACK1, BCM2835_GPIO_PUD_UP);
-	// Set ACK2 to be an input with a pullup
-	bcm2835_gpio_fsel(ACK2, BCM2835_GPIO_FSEL_INPT);
-	bcm2835_gpio_set_pud(ACK2, BCM2835_GPIO_PUD_UP);
 
-	// Set DSPIC_STATUS to be an input with a pulldown
-	bcm2835_gpio_fsel(DSPIC_STATUS, BCM2835_GPIO_FSEL_INPT);
-	bcm2835_gpio_set_pud(DSPIC_STATUS, BCM2835_GPIO_PUD_DOWN);
-	// Set PIC_DATA to be an input with a pulldown
-	bcm2835_gpio_fsel(PIC_DATA, BCM2835_GPIO_FSEL_INPT);
-	bcm2835_gpio_set_pud(PIC_DATA, BCM2835_GPIO_PUD_DOWN);
-	// Set CZMQ_STATUS to be an output and preset it LOW
-	bcm2835_gpio_fsel(CZMQ_STATUS, BCM2835_GPIO_FSEL_OUTP);
-	bcm2835_gpio_write(CZMQ_STATUS, LOW);
+	// Set RESET_MCU to be an input without pullup
+	bcm2835_gpio_fsel(RESET_MCU, BCM2835_GPIO_FSEL_INPT);
 
-	// Set TP1 to be an output and preset it LOW
-	bcm2835_gpio_fsel(TP1, BCM2835_GPIO_FSEL_OUTP);
-	bcm2835_gpio_write(TP1, LOW);
 	// Set TP2 to be an output and preset it LOW
 	bcm2835_gpio_fsel(TP2, BCM2835_GPIO_FSEL_OUTP);
 	bcm2835_gpio_write(TP2, LOW);
@@ -95,6 +71,18 @@ void SetupIO()
 	bcm2835_gpio_write(TP3, LOW);
 
 	printf("IO setup done\n");
+}
+
+void ResetMCU()
+{
+	// Reset the MCU by setting RESET_MCU as output and LOW
+	bcm2835_gpio_fsel(RESET_MCU, BCM2835_GPIO_FSEL_OUTP);
+
+	bcm2835_gpio_write(RESET_MCU, LOW);
+	bcm2835_delay(100);
+
+	// Set RESET_MCU as input
+	bcm2835_gpio_fsel(RESET_MCU, BCM2835_GPIO_FSEL_INPT);
 }
 
 void signal_handler_UART(int status)

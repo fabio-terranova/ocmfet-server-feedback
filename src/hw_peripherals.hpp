@@ -42,7 +42,7 @@
 #define DSPIC_STATUS RPI_V2_GPIO_P1_26 // DSPIC_STATUS (Rpi input) is GPIO07, pin P1-26
 #define PIC_DATA RPI_V2_GPIO_P1_07     // PIC_DATA (Rpi input) is GPIO04, pin P1-07
 #define CZMQ_STATUS RPI_V2_GPIO_P1_13  // CZMQ_STATUS (Rpi output) is GPIO27, pin P1-13
-#define TP1 RPI_V2_GPIO_P1_36          // TP1 (Rpi output) is GPIO16, pin P1-36
+#define RESET_MCU RPI_V2_GPIO_P1_36    // MCU (Rpi input and output) is GPIO16, pin P1-36
 #define TP2 RPI_V2_GPIO_P1_32          // TP2 (Rpi output) is GPIO12, pin P1-32
 #define TP3 RPI_V2_GPIO_P1_40          // TP3 (Rpi output) is GPIO21, pin P1-40
 
@@ -73,7 +73,7 @@
 #define TIMEOUT_RXBACK_CMD 300 // ms
 
 // dsPIC commands structure
-#define DSPIC_CLOCK_MHz	60.0
+#define DSPIC_CLOCK_MHz 60.0
 struct cmd
 {
     unsigned char id;                    // command letter, e.g. 'A'
@@ -83,11 +83,12 @@ struct cmd
 };
 
 int init_system();
-void InitBCM2835();                 // initialize the BCM2835 library
-void SetupSPI();                    // setup the SPI
-void SetupIO();                     // setup the IO
+void InitBCM2835(); // initialize the BCM2835 library
+void SetupSPI();    // setup the SPI
+void SetupIO();     // setup the IO
+void ResetMCU();    // reset the MCU
 void signal_handler_UART(int);
-void SetupOpenConfigUSART0();       // setup the USART
+void SetupOpenConfigUSART0(); // setup the USART
 void CloseUSART0();
 void TxByte(char);                  // send a byte to the PIC via the UART
 int sendCommandTodsPic(struct cmd); // send a command to the dsPIC
@@ -97,6 +98,6 @@ void Set_AcqEnabled(unsigned char); // set the acquisition enabled
 void InitADC1();                    // initialize ADC1
 void InitADC2();                    // initialize ADC2
 void ResetDSPIC();                  // reset the dsPIC
-int Set_VG(double, int);             // set the VG voltage for the specified channel
-int Set_Vsetpoint(double, int);      // set the Vsetpoint voltage for the specified channel
+int Set_VG(double, int);            // set the VG voltage for the specified channel
+int Set_Vsetpoint(double, int);     // set the Vsetpoint voltage for the specified channel
 int Set_T2(double);
