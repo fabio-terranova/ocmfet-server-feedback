@@ -162,7 +162,9 @@ void Server::ReceiveCommand()
 			coutr << "Received tag: " << tag << endl;
 
 			acq_->TagRecording(tag);
-			SendMessage("Tagged recording!");
+			
+			string msg = "Tagged recording! (" + tag + ")";
+			SendMessage(msg);
 		}
 		else
 		{
