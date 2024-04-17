@@ -221,7 +221,7 @@ void Server::ReceiveCommand()
 		acq_->StopThreads();
 		running_ = false;
 	}
-	else if (command.substr(0, 3) == "vg1")
+	else if (command.substr(0, 4) == "vg01")
 	{
 		string value = command.substr(4, command.length() - 4);
 		coutr << "Received vg1 command with value " << value << endl;
@@ -231,7 +231,7 @@ void Server::ReceiveCommand()
 		else
 			SendMessage("VG1 set to " + value + " V!");
 	}
-	else if (command.substr(0, 3) == "vg2")
+	else if (command.substr(0, 4) == "vg02")
 	{
 		string value = command.substr(4, command.length() - 4);
 		coutr << "Received vg2 command with value " << value << endl;
@@ -241,7 +241,7 @@ void Server::ReceiveCommand()
 		else
 			SendMessage("VG2 set to " + value + " V!");
 	}
-	else if (command.substr(0, 3) == "id1")
+	else if (command.substr(0, 4) == "id01")
 	{
 		string value = command.substr(4, command.length() - 4);
 		coutr << "Received i1 command with value " << value << endl;
@@ -251,7 +251,7 @@ void Server::ReceiveCommand()
 		else
 			SendMessage("I1 set to " + value + " \u03BCA!");
 	}
-	else if (command.substr(0, 3) == "id2")
+	else if (command.substr(0, 4) == "id02")
 	{
 		string value = command.substr(4, command.length() - 4);
 		coutr << "Received i2 command with value " << value << endl;
