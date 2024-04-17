@@ -229,7 +229,7 @@ void Server::ReceiveCommand()
 	}
 	else if (command.substr(0, 4) == "vg01")
 	{
-		string value = command.substr(4, command.length() - 4);
+		string value = command.substr(5, command.length() - 5);
 		coutr << "Received vg1 command with value " << value << endl;
 
 		if (acq_->SetVG(stod(value), 1) == -1)
@@ -239,7 +239,7 @@ void Server::ReceiveCommand()
 	}
 	else if (command.substr(0, 4) == "vg02")
 	{
-		string value = command.substr(4, command.length() - 4);
+		string value = command.substr(5, command.length() - 5);
 		coutr << "Received vg2 command with value " << value << endl;
 
 		if (acq_->SetVG(stod(value), 2) == -1)
@@ -249,7 +249,7 @@ void Server::ReceiveCommand()
 	}
 	else if (command.substr(0, 4) == "id01")
 	{
-		string value = command.substr(4, command.length() - 4);
+		string value = command.substr(5, command.length() - 5);
 		coutr << "Received i1 command with value " << value << endl;
 
 		if (acq_->SetVsetpoint(stod(value), 1) == -1)
@@ -259,7 +259,7 @@ void Server::ReceiveCommand()
 	}
 	else if (command.substr(0, 4) == "id02")
 	{
-		string value = command.substr(4, command.length() - 4);
+		string value = command.substr(4, command.length() - 5);
 		coutr << "Received i2 command with value " << value << endl;
 
 		if (acq_->SetVsetpoint(stod(value), 2) == -1)
