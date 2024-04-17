@@ -24,6 +24,12 @@ void Server::SendData(char *data)
 {
 	socklen_t client_address_length = sizeof(data_address_);
 	sendto(data_socket_, data, BUF_LEN, 0, (struct sockaddr *)&data_address_, client_address_length);
+
+	// Print the first 10 bytes of the data
+	// for (int i = 0; i < 10; i++)
+	// {
+	// 	cout << hex << setw(2) << setfill('0') << (int)data[i] << " ";
+	// }
 }
 
 Server::Server(int port, string data_folder, float T2) : port_(port), running_(true)
