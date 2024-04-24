@@ -211,13 +211,13 @@ void Server::ReceiveCommand()
 		else
 			SendMessage("T2 set to " + value + " \u03BCs!");
 	}
-	else if (command == "reset")
-	{
-		coutr << "Received reset command. Resetting the dsPIC..." << endl;
-		SendMessage("Resetting the dsPIC...");
+	// else if (command == "reset")
+	// {
+	// 	coutr << "Received reset command. Resetting the dsPIC..." << endl;
+	// 	SendMessage("Resetting the dsPIC...");
 
-		ResetDSPIC();
-	}
+	// 	ResetDSPIC();
+	// }
 	else if (command == "kill")
 	{
 		coutr << "Received kill command. Exiting..." << endl;
@@ -259,7 +259,7 @@ void Server::ReceiveCommand()
 	}
 	else if (command.substr(0, 4) == "id02")
 	{
-		string value = command.substr(4, command.length() - 5);
+		string value = command.substr(5, command.length() - 5);
 		coutr << "Received i2 command with value " << value << endl;
 
 		if (acq_->SetVsetpoint(stod(value), 2) == -1)

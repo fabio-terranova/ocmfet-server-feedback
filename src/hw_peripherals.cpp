@@ -70,6 +70,18 @@ void SetupIO()
 	bcm2835_gpio_fsel(TP3, BCM2835_GPIO_FSEL_OUTP);
 	bcm2835_gpio_write(TP3, LOW);
 
+	// Set the pin to be an output
+	bcm2835_gpio_fsel(SDATA, BCM2835_GPIO_FSEL_OUTP);
+	bcm2835_gpio_fsel(SCLK, BCM2835_GPIO_FSEL_OUTP);
+	bcm2835_gpio_fsel(CSn1, BCM2835_GPIO_FSEL_OUTP);
+	bcm2835_gpio_fsel(CSn2, BCM2835_GPIO_FSEL_OUTP);
+
+	// Set the pins to low
+	bcm2835_gpio_write(SDATA, LOW);
+	bcm2835_gpio_write(SCLK, LOW);
+	bcm2835_gpio_write(CSn1, HIGH);
+	bcm2835_gpio_write(CSn2, HIGH);
+
 	printf("IO setup done\n");
 }
 
@@ -191,22 +203,6 @@ int sendCommandTodsPic(struct cmd command)
 	return last_response_status;
 }
 
-void runFirmware(unsigned char val)
-{
-	tcflush(uart0_filestream, TCIFLUSH);
-	TxByte(val);
-
-	uint8_t dspic_is_ready;
-
-	printf("Waiting for firmware to run on dsPIC...\n");
-	do
-	{
-		dspic_is_ready = bcm2835_gpio_lev(DSPIC_STATUS);
-	} while (dspic_is_ready == 0);
-
-	printf("Firmware running on dsPIC\n");
-}
-
 void Set_T2lock(unsigned char val)
 {
 	struct cmd command;
@@ -225,103 +221,104 @@ void Set_T2lock(unsigned char val)
 	}
 }
 
-void Set_AcqEnabled(unsigned char val)
+/*
+ * Function to send a 16-bit data with simulated SPI
+ */
+int my_spi_transfer(uint16_t data)
 {
-	struct cmd command;
-	command.id = CMD_SET_ACQENABLED;
-	command.pars[0] = val;
-	command.numbytepars = 1;
-	command.bytePars[0] = val;
+	uint16_t result = 0;
 
-	if (sendCommandTodsPic(command) == 0)
+	for (int i = 0; i < 16; i++)
 	{
-		D printf("Acquisition enabled\n");
+		// Lower the clock
+		bcm2835_gpio_write(SCLK, LOW);
+
+		// Set the data bit
+		if (data & 0x8000)
+		{
+			bcm2835_gpio_write(SDATA, HIGH);
+		}
+		else
+		{
+			bcm2835_gpio_write(SDATA, LOW);
+		}
+		// bcm2835_delayMicroseconds(30);
+
+		// Raise the clock
+		bcm2835_gpio_write(SCLK, HIGH);
+		// bcm2835_delayMicroseconds(30);
+
+		// Shift the data
+		data <<= 1;
 	}
-	else
-	{
-		D printf("Error enabling acquisition\n");
-	}
+
+	return result;
 }
 
-void InitADC1()
+int Write_MCP4822(int ch, uint16_t data)
 {
-	struct cmd command;
-	command.id = CMD_INIT_ADC1;
-	command.pars[0] = 0;
-	command.numbytepars = 0;
-	command.bytePars[0] = 0;
+	uint16_t config;
 
-	if (sendCommandTodsPic(command) == 0)
+	// Select the channel
+	if (ch == 1)
 	{
-		D printf("ADC1 initialized\n");
+		config = CH_A;
 	}
 	else
 	{
-		D printf("Error initializing ADC1\n");
+		config = CH_B;
 	}
+
+	config <<= 12;
+	data |= config;
+
+	// Send the data
+	my_spi_transfer(data);
+
+	return 0;
 }
 
-void InitADC2()
+int WriteData(int adc, int ch, uint16_t data)
 {
-	struct cmd command;
-	command.id = CMD_INIT_ADC2;
-	command.pars[0] = 0;
-	command.numbytepars = 0;
-	command.bytePars[0] = 0;
-
-	if (sendCommandTodsPic(command) == 0)
+	// Select the adc
+	if (adc == 1)
 	{
-		D printf("ADC2 initialized\n");
+		bcm2835_gpio_write(CSn1, LOW);
+	}
+	else if (adc == 2)
+	{
+		bcm2835_gpio_write(CSn2, LOW);
 	}
 	else
 	{
-		D printf("Error initializing ADC2\n");
+		return -1;
 	}
-}
+	// bcm2835_delayMicroseconds(30);
 
-void ResetDSPIC()
-{
-	struct cmd command;
-	command.id = CMD_RESET;
-	command.pars[0] = 0;
-	command.numbytepars = 0;
-	command.bytePars[0] = 0;
+	// Write the data
+	Write_MCP4822(ch, data);
 
-	if (sendCommandTodsPic(command) == 0)
+	// Deselect the adc
+	if (adc == 1)
 	{
-		D printf("dsPIC reset\n");
+		bcm2835_gpio_write(CSn1, HIGH);
 	}
-	else
+	else if (adc == 2)
 	{
-		D printf("Error resetting dsPIC\n");
+		bcm2835_gpio_write(CSn2, HIGH);
 	}
+
+	return 0;
 }
 
 int Set_VG(double val, int ch)
 {
-	struct cmd command;
-	if (ch == 1)
-		command.id = CMD_SET_VSOURCE1;
-	else if (ch == 2)
-		command.id = CMD_SET_VSOURCE2;
-	else
-		return -1;
-	command.pars[0] = val * 1000.0; // convert to mV
-	command.numbytepars = 2;
+	uint16_t data = mapVtoDAC(val);
 
-	if (command.pars[0] < DAC_VMIN)
-		command.pars[0] = DAC_VMIN;
-	else if (command.pars[0] > DAC_VMAX)
-		command.pars[0] = DAC_VMAX;
-
-	unsigned short upar = (unsigned short)command.pars[0];
-
-	command.bytePars[0] = (unsigned char)((upar & 0xFF00) >> 8);
-	command.bytePars[1] = (unsigned char)(upar & 0x00FF);
-
-	if (sendCommandTodsPic(command) == 0)
+	// Write the data
+	if (WriteData(ch, 2, data) == 0)
 	{
-		D printf("VG%d set to %f V\n", ch, val);
+		D printf("VG%d set to %0.2f\n", ch, val);
 		return 0;
 	}
 	else
@@ -333,34 +330,17 @@ int Set_VG(double val, int ch)
 
 int Set_Vsetpoint(double val, int ch)
 {
-	struct cmd command;
-	if (ch == 1)
-		command.id = CMD_SET_VGATE1;
-	else if (ch == 2)
-		command.id = CMD_SET_VGATE2;
-	else
-		return -1;
-	command.pars[0] = val * 500.0; // convert I (uA) to mV
-	command.numbytepars = 2;
+	uint16_t data = mapVtoDAC(val * 0.5); // uA to V
 
-	if (command.pars[0] < DAC_VMIN)
-		command.pars[0] = DAC_VMIN;
-	else if (command.pars[0] > DAC_VMAX)
-		command.pars[0] = DAC_VMAX;
-
-	unsigned short upar = (unsigned short)command.pars[0];
-
-	command.bytePars[0] = (unsigned char)((upar & 0xFF00) >> 8);
-	command.bytePars[1] = (unsigned char)(upar & 0x00FF);
-
-	if (sendCommandTodsPic(command) == 0)
+	// Write the data
+	if (WriteData(ch, 1, data) == 0)
 	{
-		D printf("Ids_setpoint%d set to %f \u03BCA\n", ch, val);
+		D printf("Vsetpoint%d set to %0.2f\n", ch, val);
 		return 0;
 	}
 	else
 	{
-		D printf("Error setting Ids_setpoint%d\n", ch);
+		D printf("Error setting Vsetpoint%d\n", ch);
 		return -1;
 	}
 }
