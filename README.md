@@ -10,13 +10,15 @@ Server application for the **feedback** version of the acquisition system develo
     - [Prerequisites](#prerequisites)
     - [Download](#download)
     - [Compile](#compile)
+      - [Using CMake](#using-cmake)
+      - [Using g++ directly](#using-g-directly)
   - [Run](#run)
 
 ## Installation
 
 ### Prerequisites
 
-Git is required to download the repository from GitHub. CMake is required to compile the server application.
+Git is required to download the repository from GitHub. CMake can be used to compile the server application. Install them with the following command:
 
 ```sh
 sudo apt-get install git cmake
@@ -32,13 +34,23 @@ git clone https://github.com/fabio-terranova/ocmfet-server-feedback.git
 
 ### Compile
 
-Compile the server application using CMake:
+Compile the server application using CMake or g++ directly.
+
+#### Using CMake
 
 ```sh
 cd ocmfet-server-feedback
 mkdir build
 cmake -S . -B build
 cmake --build build/
+```
+
+#### Using g++ directly
+
+```sh
+cd ocmfet-server-feedback
+mkdir build
+g++ -std=c++20 -Wall -o build/server src/main.cpp src/hw_peripherals.cpp src/acquirer.cpp src/server.cpp -lbcm2835 -lpthread -lrt
 ```
 
 ## Run

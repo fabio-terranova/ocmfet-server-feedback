@@ -1,32 +1,29 @@
 #include "hw_peripherals.hpp"
 #include "server.hpp"
 
+#include <cstdint>
 #include <iostream>
 #include <unistd.h>
 
-using namespace std;
+constexpr std::string_view data_folder = "/home/pi/data/";
 
-string data_folder = "/home/pi/data/";
+int main(int argc, char* argv[]) {
+  if (argc != 2) {
+    std::cerr << "Usage: " << argv[0] << " <port>" << '\n';
 
-int main(int argc, char *argv[])
-{
-	if (argc != 2)
-	{
-		cerr << "Usage: " << argv[0] << " <port>" << endl;
-		return 1;
-	}
+    return 1;
+  }
 
-	int port = atoi(argv[1]);
-	
-	init_system();
+  const uint16_t port{static_cast<uint16_t>(atoi(argv[1]))};
 
-	while (true)
-	{
-		Server server(port, data_folder, T2_DEFAULT);
-		server.Run();
+  init_system();
 
-		usleep(1000000);
-	}
+  while (true) {
+    Server server(port, data_folder, T2_DEFAULT);
+    server.Run();
 
-	return 0;
+    usleep(1000000);
+  }
+
+  return 0;
 }
