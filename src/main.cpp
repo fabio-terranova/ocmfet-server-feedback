@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 
   while (true) {
     Server server(port, data_folder, T2_DEFAULT);
-    server.Run();
+    server.run();
 
     usleep(1000000);
   }

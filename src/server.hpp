@@ -14,9 +14,9 @@ class Server {
 public:
   Server(uint16_t, std::string_view, float);
   ~Server();
-  void Run();
-  void SendMessage(std::string_view);
-  void SendData(char*);
+  void run();
+  void sendMessage(std::string_view);
+  void sendData(char*);
 
 private:
   const uint16_t     port_;
@@ -29,13 +29,13 @@ private:
 
   Acquirer* acq_;
 
-  void ReceiveCommand();
-  void StartThreads();
-  void StartRecording();
-  void StartRecording(std::string_view);
-  void TagRecording(std::string);
-  void StopRecording();
-  void PauseRecording();
-  void StartAcquisition();
-  void StopAcquisition();
+  void receiveCommand();
+  void startThreads();
+  void startRecording();
+  void startRecording(std::string_view);
+  void tagRecording(std::string);
+  void stopRecording();
+  void pauseRecording();
+  void startAcquisition();
+  void stopAcquisition();
 };

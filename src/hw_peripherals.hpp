@@ -97,20 +97,20 @@ struct cmd {
 };
 
 int  init_system();
-void InitBCM2835(); // initialize the BCM2835 library
-void SetupSPI();    // setup the SPI
-void SetupIO();     // setup the IO
-void ResetMCU();    // reset the MCU
+void initBCM2835(); // initialize the BCM2835 library
+void setupSPI();    // setup the SPI
+void setupIO();     // setup the IO
+void resetMCU();    // reset the MCU
 void signal_handler_UART(int);
-void SetupOpenConfigUSART0(); // setup the USART
-void CloseUSART0();
-void TxByte(char);                   // send a byte to the PIC via the UART
+void setupOpenConfigUSART0(); // setup the USART
+void closeUSART0();
+void txByte(char);                   // send a byte to the PIC via the UART
 int  sendCommandTodsPic(struct cmd); // send a command to the dsPIC
-void Set_T2lock(unsigned char);      // set the T2 lock
+void set_T2lock(unsigned char);      // set the T2 lock
 int  my_spi_transfer(uint16_t);      // transfer data via simulated SPI
-int  Write_MCP4882(int, uint16_t);   // write to the MPC4882
-int  WriteData(int, int, uint16_t);  // write data to the two ADCs
-int  Set_VG(double, int); // set the VG voltage for the specified channel
-int  Set_Vsetpoint(double,
+int  write_MCP4882(int, uint16_t);   // write to the MPC4882
+int  writeData(int, int, uint16_t);  // write data to the two ADCs
+int  set_VG(double, int); // set the VG voltage for the specified channel
+int  set_Vsetpoint(double,
                    int); // set the Vsetpoint voltage for the specified channel
-int  Set_T2(double);
+int  set_T2(double);

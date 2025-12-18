@@ -12,13 +12,13 @@
 
 #define coutr std::cout << "-> "
 
-void Server::SendMessage(std::string_view message) {
+void Server::sendMessage(std::string_view message) {
   socklen_t client_address_length{sizeof(client_address_)};
   sendto(socket_, std::string(message).c_str(), message.length(), 0,
          (struct sockaddr*)&client_address_, client_address_length);
 }
 
-void Server::SendData(char* data) {
+void Server::sendData(char* data) {
   socklen_t client_address_length{sizeof(data_address_)};
   sendto(data_socket_, data, BUF_LEN, 0, (struct sockaddr*)&data_address_,
          client_address_length);
@@ -59,14 +59,14 @@ Server::Server(uint16_t port, std::string_view data_folder, float T2)
   }
 
   acq_ = new Acquirer(data_folder, T2);
-  acq_->StartThreads(this);
+  acq_->startThreads(this);
 }
 
-void Server::Run() {
+void Server::run() {
   std::cout << "Server listening on port " << port_ << '\n';
 
   while (running_) {
-    ReceiveCommand();
+    receiveCommand();
   }
 }
 
@@ -78,7 +78,7 @@ Server::~Server() {
   std::cout << "Server stopped." << '\n' << '\n';
 }
 
-void Server::ReceiveCommand() {
+void Server::receiveCommand() {
   char      buffer[1024];
   socklen_t client_address_length{sizeof(client_address_)};
 
@@ -100,82 +100,82 @@ void Server::ReceiveCommand() {
   if (command == "start") {
     if (!acq_->acquiring_) {
       coutr << "Received start command. Starting the acquisition..." << '\n';
-      acq_->Start();
-      SendMessage("Started the acquisition!");
+      acq_->start();
+      sendMessage("Started the acquisition!");
     } else {
       coutr << "Received start command, but the acquisition is already running."
             << '\n';
-      SendMessage("The acquisition is already running.");
+      sendMessage("The acquisition is already running.");
     }
   } else if (command.substr(0, 3) == "rec") {
     std::string_view filename{command.substr(4)};
 
     if (!acq_->recording_) {
       coutr << "Received rec command. Starting recording..." << '\n';
-      acq_->StartRecording(filename);
-      SendMessage("Started recording!");
+      acq_->startRecording(filename);
+      sendMessage("Started recording!");
     } else {
       coutr << "Received rec command, but the recording is already running."
             << '\n';
-      SendMessage("The server is already recording.");
+      sendMessage("The server is already recording.");
     }
   } else if (command == "pause") {
     if (acq_->recording_ && !acq_->paused_) {
       coutr << "Received pause command. Pausing recording..." << '\n';
-      acq_->PauseRecording();
-      SendMessage("Paused recording!");
+      acq_->pauseRecording();
+      sendMessage("Paused recording!");
     } else {
       coutr << "Received pause command, but there is nothing to pause." << '\n';
-      SendMessage("The server is not recording.");
+      sendMessage("The server is not recording.");
     }
   } else if (command == "resume") {
     if (acq_->recording_ && acq_->paused_) {
       coutr << "Received resume command. Resuming recording..." << '\n';
-      acq_->ResumeRecording();
-      SendMessage("Resumed recording!");
+      acq_->resumeRecording();
+      sendMessage("Resumed recording!");
     } else {
       coutr << "Received resume command, but there is nothing to resume."
             << '\n';
-      SendMessage("The server is already recording.");
+      sendMessage("The server is already recording.");
     }
   } else if (command.substr(0, 3) == "tag") {
     if (acq_->recording_ && !acq_->paused_) {
       std::string_view tag{command.substr(4)};
       coutr << "Received tag: " << tag << '\n';
 
-      acq_->TagRecording(std::string(tag));
+      acq_->tagRecording(std::string(tag));
 
-      SendMessage("Tagged recording! (" + std::string(tag) + ")");
+      sendMessage("Tagged recording! (" + std::string(tag) + ")");
     } else {
       coutr << "Received tag command, but there is no recording." << '\n';
-      SendMessage("The server is not recording.");
+      sendMessage("The server is not recording.");
     }
   } else if (command == "stop") {
     if (acq_->acquiring_) {
       coutr << "Received stop command. Stopping the acquisition..." << '\n';
-      std::vector<std::string> files{acq_->Stop()};
-      SendMessage("Stopped the acquisition!");
+      std::vector<std::string> files{acq_->stop()};
+      sendMessage("Stopped the acquisition!");
       if (files.size() > 0) {
-        SendMessage("Stopped the recording!");
+        sendMessage("Stopped the recording!");
         std::cout << "Recording saved to " << files[0] << '\n';
-        SendMessage("Recording saved to " + files[0]);
+        sendMessage("Recording saved to " + files[0]);
         std::cout << "Tags saved to " << files[1] << '\n';
-        SendMessage("Tags saved to " + files[1]);
+        sendMessage("Tags saved to " + files[1]);
       }
     } else {
       coutr << "Received stop command, but the acquisition is already stopped."
             << '\n';
-      SendMessage("The acquisition is already stopped.");
+      sendMessage("The acquisition is already stopped.");
     }
   } else if (command.substr(0, 3) == "sT2") {
     std::string value{std::string(command.substr(4))};
 
     coutr << "Received sT2 command with value " << value << '\n';
 
-    if (acq_->SetT2(stof(value)) == -1)
-      SendMessage("Error setting T2.");
+    if (acq_->setT2(stof(value)) == -1)
+      sendMessage("Error setting T2.");
     else
-      SendMessage("T2 set to " + value + " \u03BCs!");
+      sendMessage("T2 set to " + value + " \u03BCs!");
   }
   // else if (command == "reset")
   // {
@@ -186,45 +186,45 @@ void Server::ReceiveCommand() {
   // }
   else if (command == "kill") {
     coutr << "Received kill command. Exiting..." << '\n';
-    SendMessage("Received kill command. Exiting...");
+    sendMessage("Received kill command. Exiting...");
 
-    acq_->Stop();
-    acq_->StopThreads();
+    acq_->stop();
+    acq_->stopThreads();
     running_ = false;
   } else if (command.substr(0, 4) == "vg01") {
     std::string value{std::string(command.substr(5))};
     coutr << "Received vg1 command with value " << value << '\n';
 
-    if (acq_->SetVG(stod(value), 1) == -1)
-      SendMessage("Error setting VG1.");
+    if (acq_->setVG(stod(value), 1) == -1)
+      sendMessage("Error setting VG1.");
     else
-      SendMessage("VG1 set to " + value + " V!");
+      sendMessage("VG1 set to " + value + " V!");
   } else if (command.substr(0, 4) == "vg02") {
     std::string value{std::string(command.substr(5))};
     coutr << "Received vg2 command with value " << value << '\n';
 
-    if (acq_->SetVG(stod(value), 2) == -1)
-      SendMessage("Error setting VG2.");
+    if (acq_->setVG(stod(value), 2) == -1)
+      sendMessage("Error setting VG2.");
     else
-      SendMessage("VG2 set to " + value + " V!");
+      sendMessage("VG2 set to " + value + " V!");
   } else if (command.substr(0, 4) == "id01") {
     std::string value{std::string(command.substr(5))};
     coutr << "Received i1 command with value " << value << '\n';
 
-    if (acq_->SetVsetpoint(stod(value), 1) == -1)
-      SendMessage("Error setting Isetpoint1.");
+    if (acq_->setVsetpoint(stod(value), 1) == -1)
+      sendMessage("Error setting Isetpoint1.");
     else
-      SendMessage("I1 set to " + value + " \u03BCA!");
+      sendMessage("I1 set to " + value + " \u03BCA!");
   } else if (command.substr(0, 4) == "id02") {
     std::string value{std::string(command.substr(5))};
     coutr << "Received i2 command with value " << value << '\n';
 
-    if (acq_->SetVsetpoint(stod(value), 2) == -1)
-      SendMessage("Error setting Isetpoint2.");
+    if (acq_->setVsetpoint(stod(value), 2) == -1)
+      sendMessage("Error setting Isetpoint2.");
     else
-      SendMessage("I2 set to " + value + " \u03BCA!");
+      sendMessage("I2 set to " + value + " \u03BCA!");
   } else {
     coutr << "Received unknown command: " << std::string(command) << '\n';
-    SendMessage("Unknown command: " + std::string(command));
+    sendMessage("Unknown command: " + std::string(command));
   }
 }

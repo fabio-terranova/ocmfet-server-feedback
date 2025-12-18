@@ -15,16 +15,16 @@ struct termios   termAttr;                  // terminal attributes
 struct sigaction saio;                      // signal action
 
 int init_system() {
-  InitBCM2835();
-  SetupSPI();
-  SetupIO();
-  SetupOpenConfigUSART0();
-  ResetMCU();
+  initBCM2835();
+  setupSPI();
+  setupIO();
+  setupOpenConfigUSART0();
+  resetMCU();
 
   return 0;
 }
 
-void InitBCM2835() {
+void initBCM2835() {
   if (!bcm2835_init()) {
     printf("bcm2835_init failed. Are you running as root??\n");
     return;
@@ -33,7 +33,7 @@ void InitBCM2835() {
   }
 }
 
-void SetupSPI() {
+void setupSPI() {
   bcm2835_spi_begin();
   bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
   bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
@@ -44,7 +44,7 @@ void SetupSPI() {
   printf("SPI setup done\n");
 }
 
-void SetupIO() {
+void setupIO() {
   // Set REQ to be an output and preset it HIGH
   bcm2835_gpio_fsel(REQ, BCM2835_GPIO_FSEL_OUTP);
   bcm2835_gpio_write(REQ, HIGH);
@@ -78,7 +78,7 @@ void SetupIO() {
   printf("IO setup done\n");
 }
 
-void ResetMCU() {
+void resetMCU() {
   // Reset the MCU by setting RESET_MCU as output and LOW
   bcm2835_gpio_fsel(RESET_MCU, BCM2835_GPIO_FSEL_OUTP);
 
@@ -104,7 +104,7 @@ void signal_handler_UART(int status) {
   }
 }
 
-void SetupOpenConfigUSART0() {
+void setupOpenConfigUSART0() {
   struct termios options;
 
   uart0_filestream = -1;
@@ -135,9 +135,9 @@ void SetupOpenConfigUSART0() {
   printf("UART setup done\n");
 }
 
-void CloseUSART0() { close(uart0_filestream); }
+void closeUSART0() { close(uart0_filestream); }
 
-void TxByte(unsigned char c) {
+void txByte(unsigned char c) {
   if (uart0_filestream != -1) {
     ssize_t count = write(uart0_filestream, &c, 1);
     if (count < 0) {
@@ -155,11 +155,11 @@ int sendCommandTodsPic(struct cmd command) {
   last_cmd             = command;
 
   tcflush(uart0_filestream, TCIOFLUSH);
-  TxByte(command.id);
+  txByte(command.id);
 
   D printf("Sent command %c to dsPIC with parameters: ", command.id);
   for (int i = 0; i < command.numbytepars; i++)
-    TxByte(command.bytePars[i]);
+    txByte(command.bytePars[i]);
 
   D {
     for (int i = 0; i < command.numbytepars; i++) {
@@ -181,7 +181,7 @@ int sendCommandTodsPic(struct cmd command) {
   return last_response_status;
 }
 
-void Set_T2lock(unsigned char val) {
+void set_T2lock(unsigned char val) {
   struct cmd command;
   command.id          = CMD_SET_T2LOCK;
   command.pars[0]     = val;
@@ -224,7 +224,7 @@ int my_spi_transfer(uint16_t data) {
   return result;
 }
 
-int Write_MCP4822(int ch, uint16_t data) {
+int write_MCP4822(int ch, uint16_t data) {
   uint16_t config;
 
   // Select the channel
@@ -243,7 +243,7 @@ int Write_MCP4822(int ch, uint16_t data) {
   return 0;
 }
 
-int WriteData(int adc, int ch, uint16_t data) {
+int writeData(int adc, int ch, uint16_t data) {
   // Select the adc
   if (adc == 1) {
     bcm2835_gpio_write(CSn1, LOW);
@@ -255,7 +255,7 @@ int WriteData(int adc, int ch, uint16_t data) {
   // bcm2835_delayMicroseconds(30);
 
   // Write the data
-  Write_MCP4822(ch, data);
+  write_MCP4822(ch, data);
 
   // Deselect the adc
   if (adc == 1) {
@@ -267,11 +267,11 @@ int WriteData(int adc, int ch, uint16_t data) {
   return 0;
 }
 
-int Set_VG(double val, int ch) {
+int set_VG(double val, int ch) {
   uint16_t data{mapVtoDAC(val)};
 
   // Write the data
-  if (WriteData(ch, 2, data) == 0) {
+  if (writeData(ch, 2, data) == 0) {
     D printf("VG%d set to %0.2f\n", ch, val);
     return 0;
   } else {
@@ -280,11 +280,11 @@ int Set_VG(double val, int ch) {
   }
 }
 
-int Set_Vsetpoint(double val, int ch) {
+int set_Vsetpoint(double val, int ch) {
   uint16_t data{mapVtoDAC(val * 0.5)}; // uA to V
 
   // Write the data
-  if (WriteData(ch, 1, data) == 0) {
+  if (writeData(ch, 1, data) == 0) {
     D printf("Vsetpoint%d set to %0.2f\n", ch, val);
     return 0;
   } else {
@@ -293,7 +293,7 @@ int Set_Vsetpoint(double val, int ch) {
   }
 }
 
-int Set_T2(double us) {
+int set_T2(double us) {
   struct cmd command;
   command.id          = CMD_SET_TIM2PER;
   command.pars[0]     = DSPIC_CLOCK_MHz * us;

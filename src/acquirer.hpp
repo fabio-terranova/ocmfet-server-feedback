@@ -20,21 +20,21 @@ public:
   Acquirer(std::string_view, float);
   ~Acquirer();
 
-  void                     StartThreads(Server*);
-  void                     StopThreads();
-  void                     Start();
-  std::vector<std::string> Stop();
-  void                     StartRecording();
-  void                     StartRecording(std::string_view);
-  void                     PauseRecording();
-  void                     ResumeRecording();
-  std::vector<std::string> StopRecording();
-  std::vector<std::string> SaveRecording();
-  void                     TagRecording(std::string);
+  void                     startThreads(Server*);
+  void                     stopThreads();
+  void                     start();
+  std::vector<std::string> stop();
+  void                     startRecording();
+  void                     startRecording(std::string_view);
+  void                     pauseRecording();
+  void                     resumeRecording();
+  std::vector<std::string> stopRecording();
+  std::vector<std::string> saveRecording();
+  void                     tagRecording(std::string);
 
-  int SetT2(float);
-  int SetVG(double, int);
-  int SetVsetpoint(double, int);
+  int setT2(float);
+  int setVG(double, int);
+  int setVsetpoint(double, int);
 
   bool             running_;
   std::atomic_bool acquiring_;
@@ -42,8 +42,8 @@ public:
   std::atomic_bool paused_;
 
 private:
-  void AcquireData();
-  void ProcessData(Server*);
+  void acquireData();
+  void processData(Server*);
 
   std::mutex              dataMutex;
   std::condition_variable acqCV;

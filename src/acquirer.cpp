@@ -38,7 +38,7 @@ Acquirer::Acquirer(std::string_view data_folder, float T2)
 
   std::cout << "Memory allocated: " << std::hex << memblock_ << std::dec
             << '\n';
-  // SetT2(T2);
+  // setT2(T2);
 }
 
 Acquirer::~Acquirer() {
@@ -48,15 +48,15 @@ Acquirer::~Acquirer() {
 }
 
 // SendData callback
-void Acquirer::StartThreads(Server* server) {
+void Acquirer::startThreads(Server* server) {
   running_ = true;
   std::cout << "Starting acquisition and processing threads..." << '\n';
-  acqThread_  = std::jthread(&Acquirer::AcquireData, this);
-  procThread_ = std::jthread(&Acquirer::ProcessData, this, server);
+  acqThread_  = std::jthread(&Acquirer::acquireData, this);
+  procThread_ = std::jthread(&Acquirer::processData, this, server);
   std::cout << "Threads started." << '\n';
 }
 
-void Acquirer::StopThreads() {
+void Acquirer::stopThreads() {
   std::unique_lock<std::mutex> lock(dataMutex);
   acquiring_ = true;
   acqCV.notify_all();
@@ -65,39 +65,39 @@ void Acquirer::StopThreads() {
   lock.unlock();
 }
 
-void Acquirer::Start() {
+void Acquirer::start() {
   acquiring_ = true;
-  Set_T2lock(0);
+  set_T2lock(0);
   acqCV.notify_one();
 }
 
-void Acquirer::StartRecording() {
+void Acquirer::startRecording() {
   recording_ = true;
   paused_    = false;
 
   if (!acquiring_)
-    Start();
+    start();
 }
 
-void Acquirer::StartRecording(std::string_view filename) {
+void Acquirer::startRecording(std::string_view filename) {
   filename_ = filename;
   tags_     = "time,tag\n";
 
-  StartRecording();
+  startRecording();
 }
 
-void Acquirer::PauseRecording() { paused_ = true; }
+void Acquirer::pauseRecording() { paused_ = true; }
 
-void Acquirer::ResumeRecording() { paused_ = false; }
+void Acquirer::resumeRecording() { paused_ = false; }
 
-std::vector<std::string> Acquirer::StopRecording() {
+std::vector<std::string> Acquirer::stopRecording() {
   recording_ = false;
   paused_    = false;
 
-  return SaveRecording();
+  return saveRecording();
 }
 
-std::vector<std::string> Acquirer::SaveRecording() {
+std::vector<std::string> Acquirer::saveRecording() {
   auto   now{std::chrono::system_clock::now()};
   time_t now_c{std::chrono::system_clock::to_time_t(now)};
 
@@ -140,23 +140,23 @@ std::vector<std::string> Acquirer::SaveRecording() {
   return std::vector<std::string>{filename, tags_filename};
 }
 
-std::vector<std::string> Acquirer::Stop() {
-  Set_T2lock(1);
+std::vector<std::string> Acquirer::stop() {
+  set_T2lock(1);
   acquiring_ = false;
   iter_      = 0;
 
   if (recording_)
-    return StopRecording();
+    return stopRecording();
   else
     return std::vector<std::string>{};
 }
 
-void Acquirer::TagRecording(std::string tag) {
+void Acquirer::tagRecording(std::string tag) {
   tags_ +=
       std::to_string((float)(memoffset_) / 4 * T2_ / 1e6) + "," + tag + "\n";
 }
 
-void Acquirer::AcquireData() {
+void Acquirer::acquireData() {
   use_buffer_  = BUFFER_A;
   proc_buffer_ = BUFFER_B;
 
@@ -208,7 +208,7 @@ void Acquirer::AcquireData() {
   }
 }
 
-void Acquirer::ProcessData(Server* server) {
+void Acquirer::processData(Server* server) {
   while (running_) {
     // Wait for the data to be ready
     // cout << "PROC: Pre-LOCK " << iter_ << endl;
@@ -222,7 +222,7 @@ void Acquirer::ProcessData(Server* server) {
     }
 
     // Send the data to the server
-    server->SendData(data);
+    server->sendData(data);
 
     // Unlock the mutex
     lock.unlock();
@@ -236,25 +236,25 @@ void Acquirer::ProcessData(Server* server) {
   }
 }
 
-int Acquirer::SetT2(float value) {
+int Acquirer::setT2(float value) {
   T2_ = value;
-  return Set_T2(T2_);
+  return set_T2(T2_);
 }
 
-int Acquirer::SetVG(double value, int channel) {
+int Acquirer::setVG(double value, int channel) {
   // set value precision to 2 decimal digits (V)
   std::stringstream ss;
   ss << std::fixed << std::setprecision(2) << value;
-  TagRecording(VG_LATEX(std::to_string(channel), ss.str()));
+  tagRecording(VG_LATEX(std::to_string(channel), ss.str()));
 
-  return Set_VG(value, channel);
+  return set_VG(value, channel);
 }
 
-int Acquirer::SetVsetpoint(double value, int channel) {
+int Acquirer::setVsetpoint(double value, int channel) {
   // set value precision to 2 decimal digits (uA)
   std::stringstream ss;
   ss << std::fixed << std::setprecision(2) << value;
-  TagRecording(IDS_LATEX(std::to_string(channel), ss.str()));
+  tagRecording(IDS_LATEX(std::to_string(channel), ss.str()));
 
-  return Set_Vsetpoint(value, channel);
+  return set_Vsetpoint(value, channel);
 }
