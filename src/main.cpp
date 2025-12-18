@@ -4,19 +4,17 @@
 #include <iostream>
 #include <unistd.h>
 
-using namespace std;
-
-string data_folder = "/home/pi/data/";
+constexpr std::string_view data_folder = "/home/pi/data/";
 
 int main(int argc, char *argv[])
 {
 	if (argc != 2)
 	{
-		cerr << "Usage: " << argv[0] << " <port>" << endl;
+		std::cerr << "Usage: " << argv[0] << " <port>" << '\n';
 		return 1;
 	}
 
-	int port = atoi(argv[1]);
+	const int port = atoi(argv[1]);
 	
 	init_system();
 

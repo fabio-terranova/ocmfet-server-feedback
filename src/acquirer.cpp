@@ -12,9 +12,7 @@
 #define IDS_LATEX(x, y) "$I_{ds_{" + (x) + "}}=-" + (y) + "\\text{ }\\mu \\text{A}$"
 #define VG_LATEX(x, y) "$V_{g_{" + (x) + "}}=-" + (y) + "\\text{ V}$"
 
-using namespace std;
-
-Acquirer::Acquirer(string data_folder, float T2) : acquiring_(false), recording_(false), paused_(false),
+Acquirer::Acquirer(std::string data_folder, float T2) : acquiring_(false), recording_(false), paused_(false),
 												   T2_(T2), iter_(0), use_buffer_(0), proc_buffer_(0), memoffset_(0),
 												   data_folder_(data_folder), tags_("")
 {
@@ -23,10 +21,10 @@ Acquirer::Acquirer(string data_folder, float T2) : acquiring_(false), recording_
 
 	if (stat(data_folder_.c_str(), &info) != 0)
 	{
-		cout << "Creating data folder..." << endl;
+		std::cout << "Creating data folder..." << '\n';
 		if (mkdir(data_folder_.c_str(), 0777) != 0)
 		{
-			cerr << "Error creating data folder" << endl;
+			std::cerr << "Error creating data folder" << '\n';
 			return;
 		}
 	}
@@ -35,12 +33,11 @@ Acquirer::Acquirer(string data_folder, float T2) : acquiring_(false), recording_
 	memblock_ = malloc(MEM_SIZE);
 	if (memblock_ == NULL)
 	{
-		cerr << "Error allocating memory" << endl;
+		std::cerr << "Error allocating memory" << '\n';
 		return;
 	}
 
-	cout << "Memory allocated: " << hex << memblock_ << dec << endl;
-
+	std::cout << "Memory allocated: " << std::hex << memblock_ << std::dec << '\n';
 	// SetT2(T2);
 }
 
@@ -48,22 +45,22 @@ Acquirer::~Acquirer()
 {
 	// Free the memory
 	free(memblock_);
-	cout << "Memory freed." << endl;
+	std::cout << "Memory freed." << '\n';
 }
 
 // SendData callback
 void Acquirer::StartThreads(Server *server)
 {
 	running_ = true;
-	cout << "Starting acquisition and processing threads..." << endl;
+	std::cout << "Starting acquisition and processing threads..." << '\n';
 	acqThread_ = jthread(&Acquirer::AcquireData, this);
 	procThread_ = jthread(&Acquirer::ProcessData, this, server);
-	cout << "Threads started." << endl;
+	std::cout << "Threads started." << '\n';
 }
 
 void Acquirer::StopThreads()
 {
-	unique_lock<mutex> lock(dataMutex);
+	std::unique_lock<std::mutex> lock(dataMutex);
 	acquiring_ = true;
 	acqCV.notify_all();
 	running_ = false;
@@ -115,21 +112,20 @@ vector<string> Acquirer::StopRecording()
 
 vector<string> Acquirer::SaveRecording()
 {
-	auto now = chrono::system_clock::now();
-	time_t now_c = chrono::system_clock::to_time_t(now);
+	auto now = std::system_clock::now();
+	time_t now_c = std::chrono::system_clock::to_time_t(now);
 
-	stringstream ss;
-	ss << put_time(localtime(&now_c), "%Y%m%d_%H%M%S");
-
-	string filename = data_folder_ + filename_ + "_" + ss.str() + ".bin";
-	string tags_filename = data_folder_ + filename_ + "_" + ss.str() + ".tags";
+	std::stringstream ss;
+	ss << std::put_time(std::localtime(&now_c), "%Y%m%d_%H%M%S");
+	std::string filename = data_folder_ + filename_ + "_" + ss.str() + ".bin";
+	std::string tags_filename = data_folder_ + filename_ + "_" + ss.str() + ".tags";
 
 	// Open the file
 	FILE *fp = fopen(filename.c_str(), "wb");
 	if (fp == NULL)
 	{
-		cerr << "Error opening file" << endl;
-		return vector<string>{};
+		std::cerr << "Error opening file" << '\n';
+		return std::vector<std::string>{};
 	}
 
 	// Write the data
@@ -142,8 +138,8 @@ vector<string> Acquirer::SaveRecording()
 	fp = fopen(tags_filename.c_str(), "w");
 	if (fp == NULL)
 	{
-		cerr << "Error opening tags file" << endl;
-		return vector<string>{};
+		std::cerr << "Error opening tags file" << '\n';
+		return std::vector<std::string>{};
 	}
 
 	// Write the tags
@@ -155,10 +151,10 @@ vector<string> Acquirer::SaveRecording()
 	// Reset the memory offset
 	memoffset_ = 0;
 
-	return vector<string>{filename, tags_filename};
+	return std::vector<std::string>{filename, tags_filename};
 }
 
-vector<string> Acquirer::Stop()
+std::vector<std::string> Acquirer::Stop()
 {
 	Set_T2lock(1);
 	acquiring_ = false;
@@ -170,9 +166,9 @@ vector<string> Acquirer::Stop()
 		return vector<string>{};
 }
 
-void Acquirer::TagRecording(string tag)
+void Acquirer::TagRecording(std::string tag)
 {
-	tags_ += to_string((float)(memoffset_) / 4 * T2_ / 1e6) + "," + tag + "\n";
+	tags_ += std::to_string((float)(memoffset_) / 4 * T2_ / 1e6) + "," + tag + "\n";
 }
 
 void Acquirer::AcquireData()
@@ -204,7 +200,7 @@ void Acquirer::AcquireData()
 
 		// cout << "ACQ: Pre-LOCK " << iter_ << endl;
 		// Wait for the acquisition to start
-		unique_lock<mutex> lock(dataMutex);
+		std::unique_lock<std::mutex> lock(dataMutex);
 		// Use a condition variable to start the acquisition
 		acqCV.wait(lock, [this]() -> bool
 				   { return acquiring_ && running_; });
@@ -240,14 +236,14 @@ void Acquirer::ProcessData(Server *server)
 	{
 		// Wait for the data to be ready
 		// cout << "PROC: Pre-LOCK " << iter_ << endl;
-		unique_lock<mutex> lock(dataMutex);
+		std::unique_lock<std::mutex> lock(dataMutex);
 		// cout << "PROC: LOCK " << iter_ << endl;
 		dataCV.wait(lock);
 
 		char *data = (proc_buffer_ == BUFFER_A) ? pingpong_A_ : pingpong_B_;
 		if (recording_ && !paused_)
 		{
-			memcpy((char *)memblock_ + memoffset_, data, BUF_LEN);
+			std::memcpy((char *)memblock_ + memoffset_, data, BUF_LEN);
 		}
 
 		// Send the data to the server
@@ -274,9 +270,9 @@ int Acquirer::SetT2(float value)
 int Acquirer::SetVG(double value, int channel)
 {
 	// set value precision to 2 decimal digits (V)
-	stringstream ss;
-	ss << fixed << setprecision(2) << value;
-	TagRecording(VG_LATEX(to_string(channel), ss.str()));
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2) << value;
+	TagRecording(VG_LATEX(std::to_string(channel), ss.str()));
 
 	return Set_VG(value, channel);
 }
@@ -284,9 +280,9 @@ int Acquirer::SetVG(double value, int channel)
 int Acquirer::SetVsetpoint(double value, int channel)
 {
 	// set value precision to 2 decimal digits (uA)
-	stringstream ss;
-	ss << fixed << setprecision(2) << value;
-	TagRecording(IDS_LATEX(to_string(channel), ss.str()));
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2) << value;
+	TagRecording(IDS_LATEX(std::to_string(channel), ss.str()));
 
 	return Set_Vsetpoint(value, channel);
 }

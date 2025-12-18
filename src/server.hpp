@@ -10,19 +10,17 @@
 
 #define MEM_SIZE 1024 * 1024 * 1024 // 1 GB
 
-using namespace std;
-
 class Server
 {
 public:
-	Server(int, string, float);
+	Server(int, std::string, float);
 	~Server();
 	void Run();
-	void SendMessage(string);
+	void SendMessage(std::string);
 	void SendData(char *);
 
 private:
-	int port_;
+	const int port_;
 	bool running_;
 	int socket_;
 	int data_socket_;
@@ -35,8 +33,8 @@ private:
 	void ReceiveCommand();
 	void StartThreads();
 	void StartRecording();
-	void StartRecording(string);
-	void TagRecording(string);
+	void StartRecording(std::string);
+	void TagRecording(std::string);
 	void StopRecording();
 	void PauseRecording();
 	void StartAcquisition();
