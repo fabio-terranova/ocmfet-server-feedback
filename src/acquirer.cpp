@@ -98,17 +98,18 @@ std::vector<std::string> Acquirer::StopRecording() {
 }
 
 std::vector<std::string> Acquirer::SaveRecording() {
-  auto   now   = std::chrono::system_clock::now();
-  time_t now_c = std::chrono::system_clock::to_time_t(now);
+  auto   now{std::chrono::system_clock::now()};
+  time_t now_c{std::chrono::system_clock::to_time_t(now)};
 
   std::stringstream ss;
   ss << std::put_time(std::localtime(&now_c), "%Y%m%d_%H%M%S");
-  std::string filename = data_folder_ + filename_ + "_" + ss.str() + ".bin";
-  std::string tags_filename =
-      data_folder_ + filename_ + "_" + ss.str() + ".tags";
+
+  std::string filename{data_folder_ + filename_ + "_" + ss.str() + ".bin"};
+  std::string tags_filename{data_folder_ + filename_ + "_" + ss.str() +
+                            ".tags"};
 
   // Open the file
-  FILE* fp = fopen(filename.c_str(), "wb");
+  FILE* fp{fopen(filename.c_str(), "wb")};
   if (fp == NULL) {
     std::cerr << "Error opening file" << '\n';
     return std::vector<std::string>{};
@@ -215,7 +216,7 @@ void Acquirer::ProcessData(Server* server) {
     // cout << "PROC: LOCK " << iter_ << endl;
     dataCV.wait(lock);
 
-    char* data = (proc_buffer_ == BUFFER_A) ? pingpong_A_ : pingpong_B_;
+    char* data{(proc_buffer_ == BUFFER_A) ? pingpong_A_ : pingpong_B_};
     if (recording_ && !paused_) {
       std::memcpy((char*)memblock_ + memoffset_, data, BUF_LEN);
     }

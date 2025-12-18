@@ -5,7 +5,7 @@
 #include <iostream>
 #include <unistd.h>
 
-constexpr std::string_view data_folder = "/home/pi/data/";
+constexpr std::string_view data_folder{"/home/pi/data/"};
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {

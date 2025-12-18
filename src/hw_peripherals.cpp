@@ -1,6 +1,5 @@
 #include "hw_peripherals.hpp"
 
-#include <iterator>
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
@@ -93,7 +92,7 @@ void ResetMCU() {
 void signal_handler_UART(int status) {
   char buf[256];
 
-  ssize_t n = read(uart0_filestream, &buf, sizeof(buf));
+  ssize_t n{read(uart0_filestream, &buf, sizeof(buf))};
 
   if (n > 0) {
     D printf("Received %zd bytes from UART\n", n);
@@ -200,7 +199,7 @@ void Set_T2lock(unsigned char val) {
  * Function to send a 16-bit data with simulated SPI
  */
 int my_spi_transfer(uint16_t data) {
-  uint16_t result = 0;
+  uint16_t result{0};
 
   for (int i = 0; i < 16; i++) {
     // Lower the clock
@@ -269,7 +268,7 @@ int WriteData(int adc, int ch, uint16_t data) {
 }
 
 int Set_VG(double val, int ch) {
-  uint16_t data = mapVtoDAC(val);
+  uint16_t data{mapVtoDAC(val)};
 
   // Write the data
   if (WriteData(ch, 2, data) == 0) {
@@ -282,7 +281,7 @@ int Set_VG(double val, int ch) {
 }
 
 int Set_Vsetpoint(double val, int ch) {
-  uint16_t data = mapVtoDAC(val * 0.5); // uA to V
+  uint16_t data{mapVtoDAC(val * 0.5)}; // uA to V
 
   // Write the data
   if (WriteData(ch, 1, data) == 0) {
@@ -300,7 +299,7 @@ int Set_T2(double us) {
   command.pars[0]     = DSPIC_CLOCK_MHz * us;
   command.numbytepars = 2;
 
-  unsigned short upar = (unsigned short)command.pars[0];
+  unsigned short upar{(unsigned short)command.pars[0]};
   command.bytePars[0] = (unsigned char)((upar & 0xFF00) >> 8);
   command.bytePars[1] = (unsigned char)(upar & 0x00FF);
 
