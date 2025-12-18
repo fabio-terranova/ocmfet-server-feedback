@@ -1,5 +1,6 @@
 #include "hw_peripherals.hpp"
 
+#include <iterator>
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
@@ -92,10 +93,10 @@ void ResetMCU() {
 void signal_handler_UART(int status) {
   char buf[256];
 
-  int n = read(uart0_filestream, &buf, sizeof(buf));
+  ssize_t n = read(uart0_filestream, &buf, sizeof(buf));
 
   if (n > 0) {
-    D printf("Received %d bytes from UART\n", n);
+    D printf("Received %zd bytes from UART\n", n);
     if (buf[0] == last_cmd.id)
       last_response_status = 0;
   } else {
@@ -137,9 +138,9 @@ void SetupOpenConfigUSART0() {
 
 void CloseUSART0() { close(uart0_filestream); }
 
-void TxByte(char c) {
+void TxByte(unsigned char c) {
   if (uart0_filestream != -1) {
-    int count = write(uart0_filestream, &c, 1);
+    ssize_t count = write(uart0_filestream, &c, 1);
     if (count < 0) {
       printf("UART TX error\n");
     }
@@ -148,7 +149,8 @@ void TxByte(char c) {
 
 int sendCommandTodsPic(struct cmd command) {
   struct timeval sta, sto;
-  long           s, us, ms;
+  long           s, us;
+  double         ms;
 
   last_response_status = -1;
   last_cmd             = command;
@@ -174,7 +176,7 @@ int sendCommandTodsPic(struct cmd command) {
     gettimeofday(&sto, NULL);
     s  = sto.tv_sec - sta.tv_sec;
     us = sto.tv_usec - sta.tv_usec;
-    ms = (s * 1000.0 + us / 1000.0);
+    ms = (static_cast<double>(s) * 1000.0 + static_cast<double>(us) / 1000.0);
   }
 
   return last_response_status;

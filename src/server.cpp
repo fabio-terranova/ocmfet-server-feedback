@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #define coutr std::cout << "-> "
@@ -81,7 +82,7 @@ void Server::ReceiveCommand() {
   char      buffer[1024];
   socklen_t client_address_length = sizeof(client_address_);
 
-  const int bytes_received =
+  const ssize_t bytes_received =
       recvfrom(socket_, buffer, sizeof(buffer), 0,
                (struct sockaddr*)&client_address_, &client_address_length);
 
